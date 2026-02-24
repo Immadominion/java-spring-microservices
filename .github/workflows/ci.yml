@@ -143,30 +143,34 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 30m
           script_stop: true
           script: |
+            set -e
             echo "=== Deploying to EC2 ==="
             cd ~/java-spring-microservices
 
             echo "--- Pulling latest code ---"
             git pull origin main || git pull origin master
 
-            echo "--- Rebuilding and restarting containers ---"
-            docker compose down
+            echo "--- Stopping old containers ---"
+            docker compose down --timeout 30 || true
+
+            echo "--- Building and starting containers ---"
             docker compose up --build -d
 
-            echo "--- Waiting for services to start (60s) ---"
-            sleep 60
+            echo "--- Waiting for services to start (90s) ---"
+            sleep 90
 
             echo "--- Deployment Health Check ---"
             echo "Running containers:"
             docker compose ps
 
+            PUBLIC_IP=$(curl -s --max-time 5 http://169.254.169.254/latest/meta-data/public-ipv4 || echo "unknown")
             echo ""
             echo "Service endpoints:"
-            echo "  API Gateway:     http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):4004"
-            echo "  Prometheus:      http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):9090"
-            echo "  Grafana:         http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):3000"
-
+            echo "  UI + Gateway:    http://${PUBLIC_IP}:4004"
+            echo "  Prometheus:      http://${PUBLIC_IP}:9090"
+            echo "  Grafana:         http://${PUBLIC_IP}:3000"
             echo ""
             echo "=== Deployment Complete ✓ ==="

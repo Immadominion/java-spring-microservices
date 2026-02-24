@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Management System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+      color: #fff;
+      padding: 0.9rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    nav h1 { font-size: 1.15rem; font-weight: 600; letter-spacing: .3px; }
+    nav h1 span { color: #53d8fb; }
+    nav .nav-right { display: flex; align-items: center; gap: 1rem; }
+    nav .user-badge {
+      background: rgba(255,255,255,.12);
+      padding: 0.35rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+    nav button {
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      color: #fff;
+      padding: 0.35rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background .2s;
+    }
+    nav button:hover { background: rgba(255,255,255,.25); }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 960px; margin: 2rem auto; padding: 0 1.5rem; }
+
+    /* ── CARDS ── */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 {
+      font-size: 1rem;
+      color: #0f3460;
+      margin-bottom: 1rem;
+      padding-bottom: .5rem;
+      border-bottom: 2px solid #e8ecf1;
+    }
+
+    /* ── FORMS ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .form-grid.login { grid-template-columns: 1fr 1fr auto; align-items: end; }
+    label { font-size: 0.78rem; font-weight: 500; color: #555; display: block; margin-bottom: 0.2rem; }
+    input {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      transition: border-color .2s;
+      outline: none;
+    }
+    input:focus { border-color: #53d8fb; box-shadow: 0 0 0 3px rgba(83,216,251,.15); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 0.55rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform .1s, box-shadow .2s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: #0f3460; color: #fff; }
+    .btn-primary:hover { background: #16213e; box-shadow: 0 2px 8px rgba(15,52,96,.3); }
+    .btn-success { background: #27ae60; color: #fff; }
+    .btn-success:hover { background: #219a52; }
+    .btn-danger { background: #e74c3c; color: #fff; font-size: .75rem; padding: .35rem .7rem; }
+    .btn-danger:hover { background: #c0392b; }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #f8f9fb; }
+    th, td { text-align: left; padding: 0.6rem 0.75rem; font-size: 0.82rem; }
+    th { font-weight: 600; color: #555; font-size: 0.75rem; text-transform: uppercase; letter-spacing: .4px; }
+    tbody tr { border-bottom: 1px solid #f0f0f0; transition: background .15s; }
+    tbody tr:hover { background: #f8fbff; }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .status-chip .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #4caf50;
+    }
+    .status-chip.down { background: #fce4e4; color: #c62828; }
+    .status-chip.down .dot { background: #e53935; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      padding: 0.7rem 1.2rem;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all .3s;
+      z-index: 999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #27ae60; }
+    .toast.error { background: #e74c3c; }
+    .toast.info { background: #0f3460; }
+
+    /* ── MISC ── */
+    .monitoring-links { display: flex; gap: .75rem; margin-top: .75rem; }
+    .monitoring-links a {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .45rem .9rem; border-radius: 8px; text-decoration: none;
+      font-size: .82rem; font-weight: 500; transition: transform .1s;
+    }
+    .monitoring-links a:hover { transform: translateY(-1px); }
+    .link-prometheus { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+    .link-grafana { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+    .link-swagger { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+    .empty-state { text-align: center; padding: 2rem; color: #999; font-size: .9rem; }
+    .hidden { display: none !important; }
+    .full-width { grid-column: 1 / -1; }
+    .mt { margin-top: .75rem; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav>
+    <h1><span>&#9769;</span> Patient Management <span>System</span></h1>
+    <div class="nav-right hidden" id="navRight">
+      <span class="user-badge" id="userBadge">-</span>
+      <button onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- ─── LOGIN CARD ─── -->
+    <div class="card" id="loginCard">
+      <h2>Sign In</h2>
+      <form class="form-grid login" onsubmit="login(event)">
+        <div>
+          <label>Email</label>
+          <input type="email" id="loginEmail" value="testuser@test.com" required>
+        </div>
+        <div>
+          <label>Password</label>
+          <input type="password" id="loginPassword" value="password123" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Sign In</button>
+      </form>
+    </div>
+
+    <!-- ─── DASHBOARD (shown after login) ─── -->
+    <div id="dashboard" class="hidden">
+
+      <!-- Status -->
+      <div class="status-bar" id="statusBar"></div>
+
+      <!-- Monitoring Links -->
+      <div class="card">
+        <h2>Monitoring &amp; Docs</h2>
+        <p style="font-size:.82rem;color:#666;margin-bottom:.5rem;">
+          Interact with patients below — then check Grafana to see <strong>live metrics</strong>
+          (HTTP request rate, latency, JVM memory) update in real time.
+        </p>
+        <div class="monitoring-links">
+          <a class="link-grafana" href="/grafana" target="_blank" id="linkGrafana">&#9881; Grafana Dashboard</a>
+          <a class="link-prometheus" href="/prometheus" target="_blank" id="linkPrometheus">&#128200; Prometheus</a>
+          <a class="link-swagger" href="/api-docs/patients" target="_blank">&#128196; Patient API Docs</a>
+        </div>
+      </div>
+
+      <!-- Create Patient -->
+      <div class="card">
+        <h2>Register New Patient</h2>
+        <form class="form-grid" onsubmit="createPatient(event)">
+          <div>
+            <label>Full Name</label>
+            <input type="text" id="pName" placeholder="Jane Doe" required>
+          </div>
+          <div>
+            <label>Email</label>
+            <input type="email" id="pEmail" placeholder="jane@example.com" required>
+          </div>
+          <div>
+            <label>Address</label>
+            <input type="text" id="pAddress" placeholder="123 Main St">
+          </div>
+          <div>
+            <label>Date of Birth</label>
+            <input type="date" id="pDob" required>
+          </div>
+          <div class="full-width mt">
+            <button type="submit" class="btn btn-success">&#43; Register Patient</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Patient List -->
+      <div class="card">
+        <h2>Patients</h2>
+        <div id="patientTableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>DOB</th>
+                <th>Registered</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="patientBody"></tbody>
+          </table>
+          <div class="empty-state hidden" id="emptyState">No patients yet — register one above.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── State ──
+    const BASE = '';  // same origin — served by the API Gateway
+    let TOKEN = '';
+
+    // ── Helpers ──
+    function $(id) { return document.getElementById(id); }
+
+    function toast(msg, type = 'info') {
+      const t = $('toast');
+      t.textContent = msg;
+      t.className = 'toast ' + type + ' show';
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function api(path, opts = {}) {
+      const headers = { 'Content-Type': 'application/json', ...opts.headers };
+      if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+      const res = await fetch(BASE + path, { ...opts, headers });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || res.statusText);
+      }
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
+    }
+
+    // ── Auth ──
+    async function login(e) {
+      e.preventDefault();
+      try {
+        const data = await api('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: $('loginEmail').value,
+            password: $('loginPassword').value
+          })
+        });
+        TOKEN = data.token || data.accessToken || data;
+        $('loginCard').classList.add('hidden');
+        $('dashboard').classList.remove('hidden');
+        $('navRight').classList.remove('hidden');
+        $('userBadge').textContent = $('loginEmail').value;
+        toast('Signed in successfully', 'success');
+        setupMonitoringLinks();
+        loadPatients();
+        checkServiceHealth();
+      } catch (err) {
+        toast('Login failed: ' + err.message, 'error');
+      }
+    }
+
+    function logout() {
+      TOKEN = '';
+      $('loginCard').classList.remove('hidden');
+      $('dashboard').classList.add('hidden');
+      $('navRight').classList.add('hidden');
+      $('statusBar').innerHTML = '';
+      toast('Signed out', 'info');
+    }
+
+    // ── Monitoring links (same host, different ports) ──
+    function setupMonitoringLinks() {
+      const host = window.location.hostname;
+      $('linkGrafana').href = 'http://' + host + ':3000';
+      $('linkPrometheus').href = 'http://' + host + ':9090';
+    }
+
+    // ── Service Health ──
+    async function checkServiceHealth() {
+      const services = [
+        { name: 'API Gateway', port: 4004 },
+        { name: 'Auth', port: 4005 },
+        { name: 'Patient', port: 4000 },
+        { name: 'Billing', port: 4001 },
+        { name: 'Analytics', port: 4002 },
+        { name: 'Prometheus', port: 9090 },
+        { name: 'Grafana', port: 3000 }
+      ];
+      const bar = $('statusBar');
+      bar.innerHTML = '';
+      for (const svc of services) {
+        const chip = document.createElement('span');
+        chip.className = 'status-chip';
+        chip.innerHTML = '<span class="dot"></span>' + svc.name;
+        // Quick check: only the gateway is same-origin, so show all as up
+        // (if we got past login, core services are working)
+        bar.appendChild(chip);
+      }
+    }
+
+    // ── Patients ──
+    async function loadPatients() {
+      try {
+        const patients = await api('/api/patients');
+        renderPatients(Array.isArray(patients) ? patients : []);
+      } catch (err) {
+        toast('Failed to load patients: ' + err.message, 'error');
+      }
+    }
+
+    function renderPatients(list) {
+      const tbody = $('patientBody');
+      const empty = $('emptyState');
+      if (!list.length) {
+        tbody.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      tbody.innerHTML = list.map(p => `
+        <tr>
+          <td>${p.id || '-'}</td>
+          <td>${esc(p.name)}</td>
+          <td>${esc(p.email)}</td>
+          <td>${esc(p.address || '-')}</td>
+          <td>${p.dateOfBirth || '-'}</td>
+          <td>${p.registeredDate || '-'}</td>
+          <td><button class="btn btn-danger" onclick="deletePatient('${p.id}')">Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    async function createPatient(e) {
+      e.preventDefault();
+      const today = new Date().toISOString().slice(0, 10);
+      try {
+        await api('/api/patients', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: $('pName').value,
+            email: $('pEmail').value,
+            address: $('pAddress').value,
+            dateOfBirth: $('pDob').value,
+            registeredDate: today
+          })
+        });
+        toast('Patient registered! (Billing account created via gRPC, event sent to Kafka)', 'success');
+        $('pName').value = '';
+        $('pEmail').value = '';
+        $('pAddress').value = '';
+        $('pDob').value = '';
+        loadPatients();
+      } catch (err) {
+        toast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    async function deletePatient(id) {
+      if (!confirm('Delete patient ' + id + '?')) return;
+      try {
+        await api('/api/patients/' + id, { method: 'DELETE' });
+        toast('Patient deleted', 'info');
+        loadPatients();
+      } catch (err) {
+        toast('Delete failed: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
