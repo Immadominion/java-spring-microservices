@@ -1,0 +1,44 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Patient Service
+  - job_name: "patient-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["patient-service:4000"]
+    scrape_interval: 10s
+
+  # Auth Service
+  - job_name: "auth-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["auth-service:4005"]
+    scrape_interval: 10s
+
+  # Billing Service
+  - job_name: "billing-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["billing-service:4001"]
+    scrape_interval: 10s
+
+  # Analytics Service
+  - job_name: "analytics-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["analytics-service:4002"]
+    scrape_interval: 10s
+
+  # API Gateway
+  - job_name: "api-gateway"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["api-gateway:4004"]
+    scrape_interval: 10s
